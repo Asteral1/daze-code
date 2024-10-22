@@ -5,109 +5,132 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Uploader</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
         body {
-            background: linear-gradient(to right, #4e54c8, #8f94fb);
-            font-family: 'Arial', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
             color: #333;
+            padding: 40px;
+            text-align: center;
         }
         .container {
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            border-radius: 12px;
             padding: 20px;
-            text-align: center;
-            width: 300px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            margin: 0 auto;
         }
         h1 {
             font-size: 24px;
             margin-bottom: 20px;
-            color: #4e54c8;
         }
         input[type="file"] {
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            font-size: 16px;
-            width: 100%;
             margin-bottom: 20px;
         }
-        button {
-            background-color: #4e54c8;
-            color: white;
+        #uploadBtn {
+            background-color: #28a745;
             border: none;
+            color: white;
             padding: 10px 20px;
+            font-size: 16px;
             cursor: pointer;
             border-radius: 5px;
-            font-size: 16px;
-            transition: background-color 0.3s ease;
         }
-        button:hover {
-            background-color: #3e44a0;
+        #uploadBtn:disabled {
+            background-color: #ccc;
         }
-        .message {
+        .progress-bar {
+            display: none;
+            width: 100%;
+            height: 10px;
+            background-color: #ccc;
+            border-radius: 5px;
+            overflow: hidden;
             margin-top: 20px;
-            font-size: 16px;
-            color: #d9534f;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 0;
+            background-color: #28a745;
+            transition: width 1s;
+        }
+        #fileLink {
+            display: none;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <h1>File Uploader</h1>
-        <input type="file" id="fileInput" required />
-        <button id="uploadButton">Upload</button>
-        <div class="message" id="message"></div>
+        <h1>Upload Your File</h1>
+        <form id="uploadForm" action="upload.php" method="post" enctype="multipart/form-data">
+            <label for="file">Choose a file to upload:</label><br>
+            <input type="file" id="file" name="file" required><br><br>
+            <input type="submit" value="Upload File" id="uploadBtn">
+        </form>
+
+        <!-- Progress bar -->
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-bar-fill" id="progressBarFill"></div>
+        </div>
+
+        <!-- File link and copy button -->
+        <div id="fileLink" style="display: none;">
+            <button class="button copy" id="copyLinkBtn">Copy Link</button>
+        </div>
     </div>
 
     <script>
-        const uploadButton = document.getElementById('uploadButton');
-        const fileInput = document.getElementById('fileInput');
-        const messageDiv = document.getElementById('message');
+        let uploadedFileLink = '';
 
-        uploadButton.addEventListener('click', () => {
-            const file = fileInput.files[0];
-            if (!file) {
-                showMessage('Please select a file to upload.');
-                return;
-            }
+        document.getElementById('uploadForm').addEventListener('submit', function (e) {
+            e.preventDefault();
 
-            const formData = new FormData();
-            formData.append('file', file);
+            var formData = new FormData(this);
+            var xhr = new XMLHttpRequest();
 
-            // Change this URL to your upload endpoint
-            const uploadUrl = 'https://asteral.is-a.dev/upload-files/'; 
+            // Show progress bar and disable upload button
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('uploadBtn').disabled = true;
 
-            fetch(uploadUrl, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+            // Progress bar animation
+            xhr.upload.onprogress = function (e) {
+                if (e.lengthComputable) {
+                    var percentComplete = (e.loaded / e.total) * 100;
+                    document.getElementById('progressBarFill').style.width = percentComplete + '%';
                 }
-                return response.json();
-            })
-            .then(data => {
-                const redirectUrl = `https://asteral.is-a.dev/upload-files/${encodeURIComponent(file.name)}`;
-                window.location.href = redirectUrl; // Redirect to the specified URL
-            })
-            .catch(error => {
-                showMessage('Failed to upload file: ' + error.message);
-            });
+            };
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.fileLink) {
+                        // Hide progress bar after loading
+                        document.getElementById('progressBar').style.display = 'none';
+
+                        // Store the file link
+                        uploadedFileLink = response.fileLink;
+
+                        // Display the copy link button
+                        document.getElementById('fileLink').style.display = 'block';
+                    } else if (response.error) {
+                        alert(response.error);
+                    }
+                }
+            };
+
+            xhr.open('POST', 'upload.php', true);
+            xhr.send(formData);
         });
 
-        function showMessage(message) {
-            messageDiv.textContent = message;
-        }
+        // Copy link button functionality
+        document.getElementById('copyLinkBtn').addEventListener('click', function () {
+            navigator.clipboard.writeText(uploadedFileLink).then(function () {
+                alert('Link copied to clipboard: ' + uploadedFileLink);
+            });
+        });
     </script>
+
 </body>
 </html>
