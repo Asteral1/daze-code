@@ -76,7 +76,7 @@
                     // Move the uploaded file to the uploads directory
                     if (move_uploaded_file($file_tmp, $upload_dir . $file_name)) {
                         // Redirect to the specified URL with the filename
-                        $redirect_url = "https://blahblahblahblah.blah/blahblahblah/" . urlencode($file_name);
+                        $redirect_url = "https://asteral.is-a.dev/upload-files/" . urlencode($file_name);
                         header("Location: $redirect_url");
                         exit; // Make sure to exit after redirection
                     } else {
