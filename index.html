@@ -3,44 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Uploader</title>
+    <title>Stylish File Uploader</title>
     <style>
         body {
-            background-color: #f4f4f4;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
             font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            color: #fff;
         }
-        form {
-            background: white;
+        .container {
+            background: rgba(255, 255, 255, 0.1);
             padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
         }
         input[type="file"] {
             margin: 10px 0;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
         }
         button {
-            background-color: #5cb85c;
+            background-color: #ff4081;
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 10px 20px;
             cursor: pointer;
             border-radius: 5px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
         }
         button:hover {
-            background-color: #4cae4c;
+            background-color: #f50057;
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
-    <form action="./upload.php" method="post" enctype="multipart/form-data">
-        <h1>File Uploader</h1>
-        <input type="file" name="file" required />
-        <button type="submit">Upload</button>
-    </form>
+    <div class="container">
+        <h1>Stylish File Uploader</h1>
+        <form action="" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" required />
+            <br>
+            <button type="submit">Upload</button>
+        </form>
+
+        <div class="message">
+            <?php
+            if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+                if (isset($_FILES['file'])) {
+                    $errors = [];
+                    $file_name = $_FILES['file']['name'];
+                    $file_size = $_FILES['file']['size'];
+                    $file_tmp = $_FILES['file']['tmp_name'];
+                    $file_type = $_FILES['file']['type'];
+
+                    // Set the upload directory
+                    $upload_dir = 'uploads/';
+
+                    // Create the uploads directory if it doesn't exist
+                    if (!is_dir($upload_dir)) {
+                        mkdir($upload_dir, 0755, true);
+                    }
+
+                    // Move the uploaded file to the uploads directory
+                    if (move_uploaded_file($file_tmp, $upload_dir . $file_name)) {
+                        echo "<p>File uploaded successfully: " . htmlspecialchars($file_name) . "</p>";
+                    } else {
+                        echo "<p>Failed to upload file.</p>";
+                    }
+                } else {
+                    echo "<p>No file uploaded.</p>";
+                }
+            }
+            ?>
+        </div>
+    </div>
 </body>
 </html>
