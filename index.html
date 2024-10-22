@@ -3,38 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stylish File Uploader</title>
+    <title>File Uploader</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            background: linear-gradient(to right, #6a11cb, #2575fc);
-            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #4e54c8, #8f94fb);
+            font-family: 'Arial', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
-            color: #fff;
+            color: #333;
         }
         .container {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
+            background: #fff;
             border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            padding: 20px;
             text-align: center;
+            width: 300px;
         }
         h1 {
-            margin-bottom: 20px;
             font-size: 24px;
+            margin-bottom: 20px;
+            color: #4e54c8;
         }
         input[type="file"] {
-            margin: 10px 0;
-            padding: 10px;
-            border: none;
+            border: 1px solid #ccc;
             border-radius: 5px;
+            padding: 10px;
             font-size: 16px;
+            width: 100%;
+            margin-bottom: 20px;
         }
         button {
-            background-color: #ff4081;
+            background-color: #4e54c8;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -44,50 +51,63 @@
             transition: background-color 0.3s ease;
         }
         button:hover {
-            background-color: #f50057;
+            background-color: #3e44a0;
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #d9534f;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Stylish File Uploader</h1>
-        <form action="" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" required />
-            <br>
-            <button type="submit">Upload</button>
-        </form>
-
-        <div class="message">
-            <?php
-            if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                if (isset($_FILES['file'])) {
-                    $errors = [];
-                    $file_name = $_FILES['file']['name'];
-                    $file_tmp = $_FILES['file']['tmp_name'];
-                    
-                    // Set the upload directory
-                    $upload_dir = 'uploads/';
-
-                    // Create the uploads directory if it doesn't exist
-                    if (!is_dir($upload_dir)) {
-                        mkdir($upload_dir, 0755, true);
-                    }
-
-                    // Move the uploaded file to the uploads directory
-                    if (move_uploaded_file($file_tmp, $upload_dir . $file_name)) {
-                        // Redirect to the specified URL with the filename
-                        $redirect_url = "https://asteral.is-a.dev/upload-files/" . urlencode($file_name);
-                        header("Location: $redirect_url");
-                        exit; // Make sure to exit after redirection
-                    } else {
-                        echo "<p>Failed to upload file.</p>";
-                    }
-                } else {
-                    echo "<p>No file uploaded.</p>";
-                }
-            }
-            ?>
-        </div>
+        <h1>File Uploader</h1>
+        <input type="file" id="fileInput" required />
+        <button id="uploadButton">Upload</button>
+        <div class="message" id="message"></div>
     </div>
+
+    <script>
+        const uploadButton = document.getElementById('uploadButton');
+        const fileInput = document.getElementById('fileInput');
+        const messageDiv = document.getElementById('message');
+
+        uploadButton.addEventListener('click', () => {
+            const file = fileInput.files[0];
+            if (!file) {
+                showMessage('Please select a file to upload.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Change this URL to your upload endpoint
+            const uploadUrl = 'https://asteral.is-a.dev/upload-files/'; 
+
+            fetch(uploadUrl, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const redirectUrl = `https://asteral.is-a.dev/upload-files/${encodeURIComponent(file.name)}`;
+                window.location.href = redirectUrl; // Redirect to the specified URL
+            })
+            .catch(error => {
+                showMessage('Failed to upload file: ' + error.message);
+            });
+        });
+
+        function showMessage(message) {
+            messageDiv.textContent = message;
+        }
+    </script>
 </body>
 </html>
