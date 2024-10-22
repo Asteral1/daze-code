@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (move_uploaded_file($_FILES["file"]["tmp_name"], $targetFile)) {
         // Set the file link to be used later
         // Construct the full URL
-        $fileLink = "https://asteral.optikl.ink/" . $targetFile; // Full URL to the uploaded file
+        $fileLink = "https://asteral.is-a.dev/upload-files/" . $targetFile; // Full URL to the uploaded file
         // Return the file link as a JSON response
         echo json_encode(['fileLink' => $fileLink]);
     } else {
