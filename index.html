@@ -3,64 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Collaborative Code Editor</title>
+  <title>Standalone Code Editor</title>
+  <!-- CodeMirror CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/monokai.min.css">
   <style>
     body {
-      font-family: Arial, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      background: linear-gradient(to right, #4facfe, #00f2fe);
+      min-height: 100vh;
+      background: #282c34;
+      color: white;
+      font-family: Arial, sans-serif;
     }
-    #editor {
-      width: 80%;
-      max-width: 600px;
+    .container {
+      width: 90%;
+      max-width: 800px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    #fileInput {
+      margin: 1rem 0;
     }
     .CodeMirror {
       height: 400px;
-      border: 1px solid #ddd;
       font-size: 1rem;
-      font-family: monospace;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      margin-top: 1rem;
+      background: #61dafb;
+      color: black;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #21a1f1;
     }
   </style>
 </head>
 <body>
-  <div id="editor-container">
-    <h2>Collaborative Code Editor</h2>
-    <textarea id="codeEditor"></textarea>
+  <div class="container">
+    <h1>Standalone Code Editor</h1>
+    <input type="file" id="fileInput" accept=".js, .html, .css, .txt" />
+    <textarea id="codeEditor" placeholder="Your code will appear here..."></textarea>
+    <button onclick="downloadFile()">Download Edited File</button>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+  <!-- CodeMirror JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/edit/closebrackets.min.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/css/css.min.js"></script>
   <script>
-    const socket = io();
-
-    // Initialize CodeMirror editor
+    // Initialize CodeMirror editor with syntax highlighting
     const codeMirrorEditor = CodeMirror.fromTextArea(document.getElementById("codeEditor"), {
       lineNumbers: true,
-      mode: "javascript",
       theme: "monokai",
-      autoCloseBrackets: true,
+      mode: "javascript",  // Default mode
     });
 
-    // Listen for real-time updates from the server
-    socket.on('codeUpdate', (code) => {
-      const cursor = codeMirrorEditor.getCursor();  // Save cursor position
-      codeMirrorEditor.setValue(code);              // Set the updated code
-      codeMirrorEditor.setCursor(cursor);           // Restore cursor position
+    // Handle file upload and load content into editor
+    document.getElementById("fileInput").addEventListener("change", function(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const fileContent = e.target.result;
+          codeMirrorEditor.setValue(fileContent);
+          // Set syntax mode based on file type
+          const mode = file.name.endsWith(".js") ? "javascript" :
+                       file.name.endsWith(".css") ? "css" :
+                       file.name.endsWith(".html") ? "htmlmixed" :
+                       "plaintext";
+          codeMirrorEditor.setOption("mode", mode);
+        };
+        reader.readAsText(file);
+      }
     });
 
-    // Send code updates to the server on editor changes
-    codeMirrorEditor.on('change', () => {
-      const code = codeMirrorEditor.getValue();
-      socket.emit('codeUpdate', code);
-    });
+    // Download file function
+    function downloadFile() {
+      const fileContent = codeMirrorEditor.getValue();
+      const blob = new Blob([fileContent], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "edited_file.txt";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
   </script>
 </body>
 </html>
