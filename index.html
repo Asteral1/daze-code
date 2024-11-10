@@ -64,6 +64,10 @@
     <button onclick="downloadFile()">Download Edited File</button>
   </div>
 
+  <h1>Generate a 5-Digit Random Code</h1>
+  <button onclick="generateCode()">Generate Code</button>
+  <div id="generatedCode"></div>
+  
   <!-- CodeMirror JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
@@ -76,7 +80,12 @@
       theme: "monokai",
       mode: "javascript", // Default mode
     });
-
+    function generateCode() {
+      // Generate a random 5-digit code between 10000 and 99999
+      const code = Math.floor(10000 + Math.random() * 90000);
+      // Display the generated code in the div
+      document.getElementById('generatedCode').textContent = code;
+    };
     // WebSocket connection for real-time collaboration
     const socket = new WebSocket('ws://localhost:3000');  // Connect to a WebSocket server
 
