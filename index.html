@@ -80,12 +80,14 @@
       theme: "monokai",
       mode: "javascript", // Default mode
     });
+
     function generateCode() {
       // Generate a random 5-digit code between 10000 and 99999
       const code = Math.floor(10000 + Math.random() * 90000);
       // Display the generated code in the div
       document.getElementById('generatedCode').textContent = code;
     };
+
     // WebSocket connection for real-time collaboration
     const socket = new WebSocket('ws://localhost:3000');  // Connect to a WebSocket server
 
