@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Standalone Code Editor</title>
+  <title>Collaborative Code Editor</title>
   <!-- CodeMirror CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/monokai.min.css">
@@ -29,12 +29,14 @@
     #fileInput {
       margin: 1rem 0;
     }
-  .CodeMirror {
-    height: 400px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    text-align: left;  /* Ensure text aligns to the left */
-  }
+    .CodeMirror {
+      height: 400px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      text-align: left;  /* Align text to left */
+    }
+    .textarea-container {
+      margin-top: 1rem;
     }
     button {
       padding: 0.5rem 1rem;
@@ -52,9 +54,13 @@
 </head>
 <body>
   <div class="container">
-    <h1>Standalone Code Editor</h1>
+    <h1>Collaborative Code Editor</h1>
     <input type="file" id="fileInput" accept=".js, .html, .css, .txt" />
-    <textarea id="codeEditor" placeholder="Your code will appear here..."></textarea>
+    <div id="editor"></div>
+    <div class="textarea-container">
+      <h3>Your Code (Others' Changes will Appear Here)</h3>
+      <textarea id="codeBox" rows="10" cols="50"></textarea>
+    </div>
     <button onclick="downloadFile()">Download Edited File</button>
   </div>
 
@@ -64,14 +70,26 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/htmlmixed/htmlmixed.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/css/css.min.js"></script>
   <script>
-    // Initialize CodeMirror editor with syntax highlighting
-    const codeMirrorEditor = CodeMirror.fromTextArea(document.getElementById("codeEditor"), {
+    const codeBox = document.getElementById("codeBox");
+    const codeMirrorEditor = CodeMirror(document.getElementById("editor"), {
       lineNumbers: true,
       theme: "monokai",
-      mode: "javascript",  // Default mode
+      mode: "javascript", // Default mode
     });
 
-    // Handle file upload and load content into editor
+    // WebSocket connection for real-time collaboration
+    const socket = new WebSocket('ws://localhost:3000');  // Connect to a WebSocket server
+
+    socket.onopen = function() {
+      console.log('Connected to WebSocket server');
+    }
+
+    socket.onmessage = function(event) {
+      // Update the code in CodeMirror when received from other users
+      codeMirrorEditor.setValue(event.data);
+    }
+
+    // Handle file upload
     document.getElementById("fileInput").addEventListener("change", function(event) {
       const file = event.target.files[0];
       if (file) {
@@ -79,18 +97,21 @@
         reader.onload = function(e) {
           const fileContent = e.target.result;
           codeMirrorEditor.setValue(fileContent);
-          // Set syntax mode based on file type
-          const mode = file.name.endsWith(".js") ? "javascript" :
-                       file.name.endsWith(".css") ? "css" :
-                       file.name.endsWith(".html") ? "htmlmixed" :
-                       "plaintext";
-          codeMirrorEditor.setOption("mode", mode);
+          codeBox.value = fileContent;  // Sync text box with CodeMirror
+          // Emit this file content to all other users connected
+          socket.send(fileContent);
         };
         reader.readAsText(file);
       }
     });
 
-    // Download file function
+    // Update real-time code to the server and all users
+    codeMirrorEditor.on("change", function() {
+      const newCode = codeMirrorEditor.getValue();
+      socket.send(newCode);  // Send the latest code to the WebSocket server
+    });
+
+    // Download modified code
     function downloadFile() {
       const fileContent = codeMirrorEditor.getValue();
       const blob = new Blob([fileContent], { type: "text/plain" });
