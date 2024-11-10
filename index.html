@@ -1,132 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Uploader</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
-            color: #333;
-            padding: 40px;
-            text-align: center;
-        }
-        .container {
-            background-color: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-        input[type="file"] {
-            margin-bottom: 20px;
-        }
-        #uploadBtn {
-            background-color: #28a745;
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        #uploadBtn:disabled {
-            background-color: #ccc;
-        }
-        .progress-bar {
-            display: none;
-            width: 100%;
-            height: 10px;
-            background-color: #ccc;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-top: 20px;
-        }
-        .progress-bar-fill {
-            height: 100%;
-            width: 0;
-            background-color: #28a745;
-            transition: width 0.4s ease; /* Smooth transition for the fill */
-        }
-        #fileLink {
-            display: none;
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collaborative Code Editor with Login</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      color: #333;
+    }
+    .container {
+      text-align: center;
+      width: 80%;
+      max-width: 600px;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    .form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .form input {
+      width: 80%;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    .form button {
+      padding: 0.7rem 1.5rem;
+      font-size: 1rem;
+      background: #00c6ff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .form button:hover {
+      background: #0075b6;
+    }
+    #editor-container {
+      display: none;
+      margin-top: 2rem;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    #fileInput {
+      margin-bottom: 1rem;
+    }
+    #codeEditor {
+      width: 100%;
+      height: 300px;
+      padding: 1rem;
+      font-size: 1rem;
+      font-family: monospace;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #fafafa;
+      resize: vertical;
+    }
+  </style>
 </head>
 <body>
-
-    <div class="container">
-        <h1>Upload Your File</h1>
-        <form id="uploadForm" action="upload.php" method="post" enctype="multipart/form-data">
-            <label for="file">Choose a file to upload:</label><br>
-            <input type="file" id="file" name="file" required><br><br>
-            <input type="submit" value="Upload File" id="uploadBtn">
-        </form>
-
-        <!-- Progress bar -->
-        <div class="progress-bar" id="progressBar">
-            <div class="progress-bar-fill" id="progressBarFill"></div>
-        </div>
-
-        <!-- File link and copy button -->
-        <div id="fileLink">
-            <p>File link: <a href="" id="uploadedFileLink"></a></p>
-            <button class="button copy" id="copyLinkBtn">Copy Link</button>
-        </div>
+  <div class="container">
+    <h1>Collaborative Code Editor</h1>
+    
+    <!-- Login Form -->
+    <div class="form" id="loginForm">
+      <h2>Login</h2>
+      <input type="text" id="username" placeholder="Username" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button onclick="login()">Login</button>
     </div>
+    
+    <!-- Code Editor Section -->
+    <div id="editor-container">
+      <form id="uploadForm">
+        <input type="file" id="fileInput" name="codeFile" accept=".js,.html,.css,.py,.txt" />
+        <button type="button" onclick="uploadFile()">Upload & Edit</button>
+      </form>
+      <textarea id="codeEditor" placeholder="Uploaded code will appear here..."></textarea>
+    </div>
+  </div>
 
-    <script>
-        document.getElementById('uploadForm').addEventListener('submit', function (e) {
-            e.preventDefault();
+  <script>
+    // Dummy login function
+    function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
 
-            var formData = new FormData(this);
-            var xhr = new XMLHttpRequest();
+      // Replace with real authentication in production
+      if (username === "admin" && password === "password") {
+        document.getElementById("loginForm").style.display = "none";
+        document.getElementById("editor-container").style.display = "block";
+      } else {
+        alert("Invalid username or password");
+      }
+    }
 
-            // Show progress bar and disable upload button
-            document.getElementById('progressBar').style.display = 'block';
-            document.getElementById('uploadBtn').disabled = true;
+    // File upload and editor display function
+    function uploadFile() {
+      const fileInput = document.getElementById("fileInput").files[0];
+      if (!fileInput) {
+        alert("Please select a file!");
+        return;
+      }
 
-            // Progress bar animation
-            xhr.upload.onprogress = function (e) {
-                if (e.lengthComputable) {
-                    var percentComplete = (e.loaded / e.total) * 100;
-                    document.getElementById('progressBarFill').style.width = percentComplete + '%';
-                }
-            };
-
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    // Hide progress bar after loading
-                    document.getElementById('progressBar').style.display = 'none';
-
-                    // Display the file link
-                    const response = xhr.responseText; // Get the response from the server
-                    document.getElementById('uploadedFileLink').href = response; // Set the link
-                    document.getElementById('uploadedFileLink').textContent = response; // Set the link text
-                    document.getElementById('fileLink').style.display = 'block'; // Show the file link
-                }
-                document.getElementById('uploadBtn').disabled = false; // Enable the button after upload
-            };
-
-            xhr.open('POST', 'upload.php', true);
-            xhr.send(formData);
-        });
-
-        // Copy link button functionality
-        document.getElementById('copyLinkBtn').addEventListener('click', function () {
-            var fileLink = document.getElementById('uploadedFileLink').href;
-            navigator.clipboard.writeText(fileLink).then(function () {
-                alert('Link copied to clipboard: ' + fileLink);
-            });
-        });
-    </script>
-
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById("codeEditor").value = e.target.result;
+      };
+      reader.readAsText(fileInput);
+    }
+  </script>
 </body>
 </html>
